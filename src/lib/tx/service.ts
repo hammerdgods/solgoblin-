@@ -263,7 +263,7 @@ export async function submitSignedTransaction(intentId: string, signedBase64: st
   } catch {
     throw new ApiError(400, "INVALID_TRANSACTION", "Signed transaction could not be decoded.");
   }
-  if (messageHash(tx) !== row.message_hash) throw new ApiError(422, "TX_MODIFIED", "The signed transaction differs from the reviewed preview (it may have been modified by the wallet). YieldGoblin will not submit it.");
+  if (messageHash(tx) !== row.message_hash) throw new ApiError(422, "TX_MODIFIED", "The signed transaction differs from the reviewed preview (it may have been modified by the wallet). SolGoblin will not submit it.");
   const sig = tx.signatures[0];
   if (!sig || sig.every((b) => b === 0)) throw new ApiError(400, "UNSIGNED", "Transaction is not signed.");
   const valid = ed25519.verify(sig, tx.message.serialize(), new PublicKey(row.wallet).toBytes());

@@ -1,5 +1,5 @@
 const RISKS: { title: string; body: string }[] = [
-  { title: "Smart-contract risk", body: "Lending protocols are software. Bugs, exploits, or governance actions can cause partial or total loss of deposited funds. YieldGoblin has not audited any protocol it displays." },
+  { title: "Smart-contract risk", body: "Lending protocols are software. Bugs, exploits, or governance actions can cause partial or total loss of deposited funds. SolGoblin has not audited any protocol it displays." },
   { title: "Stablecoin risk", body: "USDC can lose its peg or be frozen by its issuer. Lending yield is paid in USDC, not dollars." },
   { title: "Validator & staking risk", body: "Staking rewards depend on validator performance and commission, which can change at any time. Protocol rules, including slashing, can change." },
   { title: "Liquidity restrictions", body: "Unstaking takes about one epoch (2–3 days) or longer. Lending withdrawals depend on unborrowed liquidity and can be temporarily blocked when utilization is high." },

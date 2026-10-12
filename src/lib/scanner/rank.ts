@@ -91,7 +91,7 @@ export function evaluateOpportunity(o: Opportunity, prefs: RiskPreferences, ctx:
   if (o.liquidity.minimumDeposit !== null && principal > 0 && principal < o.liquidity.minimumDeposit) {
     exclusionReasons.push(`Amount ${principal} ${o.asset} is below the minimum of ${o.liquidity.minimumDeposit} ${o.asset}.`);
   }
-  if (!o.executable) warnings.push(o.executableReason ?? "YieldGoblin cannot build a transaction for this opportunity on the current network.");
+  if (!o.executable) warnings.push(o.executableReason ?? "SolGoblin cannot build a transaction for this opportunity on the current network.");
 
   const fees = networkFeesInAsset(o, ctx);
   if (!fees.converted) warnings.push("Network fees (paid in SOL) are not included in the net estimate because no reliable price was available.");

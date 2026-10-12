@@ -61,7 +61,7 @@ export function PositionsList({ view, loading }: { view: PortfolioView | null; l
     <div className="space-y-3">
       {!stake.ok && <SectionError what="Stake accounts" error={stake.error} />}
       {!kamino.ok && <SectionError what="Kamino positions" error={kamino.error} />}
-      {empty && <EmptyState title="No tracked positions yet">YieldGoblin tracks native stake accounts and Kamino Main Market supply positions for this wallet. Pick an opportunity to get started.</EmptyState>}
+      {empty && <EmptyState title="No tracked positions yet">SolGoblin tracks native stake accounts and Kamino Main Market supply positions for this wallet. Pick an opportunity to get started.</EmptyState>}
       <ul className="divide-y divide-border/70">
         {stake.ok && stake.data.map((a) => (
           <li key={a.address} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -84,7 +84,7 @@ export function PositionsList({ view, loading }: { view: PortfolioView | null; l
         {kamino.ok && kamino.data?.positions.map((p) => (
           <li key={p.obligation + p.reserve} className="flex flex-wrap items-center justify-between gap-3 py-3">
             <div>
-              <div className="flex items-center gap-2 text-sm font-medium">Kamino {p.asset} supply {p.hasBorrows && <Badge tone="warn" title="This obligation also has borrows; YieldGoblin does not manage borrowing.">has borrows</Badge>}</div>
+              <div className="flex items-center gap-2 text-sm font-medium">Kamino {p.asset} supply {p.hasBorrows && <Badge tone="warn" title="This obligation also has borrows; SolGoblin does not manage borrowing.">has borrows</Badge>}</div>
               <div className="mt-0.5 text-xs text-muted">Main Market · obligation {shortAddress(p.obligation)}</div>
             </div>
             <div className="text-right">
@@ -133,7 +133,7 @@ export function PositionReviews({ view }: { view: PortfolioView | null }) {
           </div>
           <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-muted">{r.reasons.map((x) => <li key={x}>{x}</li>)}</ul>
           {r.alternative && r.current && r.alternative.apy > r.current.apy && (
-            <div className="mt-1 text-[11px] text-faint">Alternative: {r.alternative.strategyName} ({formatPercent(r.alternative.apy)}). YieldGoblin never moves funds automatically.</div>
+            <div className="mt-1 text-[11px] text-faint">Alternative: {r.alternative.strategyName} ({formatPercent(r.alternative.apy)}). SolGoblin never moves funds automatically.</div>
           )}
         </li>
       ))}

@@ -11,7 +11,7 @@ import { llmExplanationSchema, type DecisionRecord, type LlmExplanation } from "
  * on any failure the deterministic template explanation is kept.
  */
 
-const SYSTEM_PROMPT = `You are YieldGoblin's explanation writer for a Solana yield analytics app.
+const SYSTEM_PROMPT = `You are SolGoblin's explanation writer for a Solana yield analytics app.
 You receive a FACTS JSON object produced by deterministic code. Write a short, plain-language explanation for a retail user.
 
 Rules:

@@ -32,7 +32,7 @@ describe("FileStore", () => {
     const s = await FileStore.open(dir);
     await s.upsertTransactionEvent(ev("c"));
     await s.insertAlerts([{ id: "al", type: "stale-data", severity: "warning", title: "t", detail: "d", opportunity_id: null, wallet: null, data: {}, created_at: new Date().toISOString() }]);
-    const raw = JSON.parse(await readFile(path.join(dir, "yieldgoblin-db.json"), "utf8"));
+    const raw = JSON.parse(await readFile(path.join(dir, "solgoblin-db.json"), "utf8"));
     expect(raw.transaction_events).toHaveLength(1);
     const again = await FileStore.open(dir);
     expect((await again.getTransactionEvent("c"))!.id).toBe("c");

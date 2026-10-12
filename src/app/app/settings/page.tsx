@@ -43,7 +43,7 @@ export default function SettingsPage() {
             <input type="number" min={1} max={3650} value={preferences.horizonDays} onChange={(e) => setProfile("custom", { ...preferences, horizonDays: Math.max(1, Math.min(3650, Math.round(Number(e.target.value) || 1))) })} className="mt-1 block h-9 w-full rounded-lg border border-border-strong bg-bg px-3 text-sm" />
           </label>
         </div>
-        <p className="mt-3 text-[11px] text-faint">Risk tiers are YieldGoblin&apos;s own coarse classification, not a protocol rating. Native staking is “low”; lending is “medium”, and becomes “high” when reserve utilization is near its limit.</p>
+        <p className="mt-3 text-[11px] text-faint">Risk tiers are SolGoblin&apos;s own coarse classification, not a protocol rating. Native staking is “low”; lending is “medium”, and becomes “high” when reserve utilization is near its limit.</p>
       </Card>
 
       <Card title="Data mode">

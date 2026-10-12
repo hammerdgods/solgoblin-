@@ -17,7 +17,7 @@ export class FileStore extends MemoryStore {
   }
 
   static async open(dir: string): Promise<FileStore> {
-    const file = path.resolve(dir, "yieldgoblin-db.json");
+    const file = path.resolve(dir, "solgoblin-db.json");
     await fs.mkdir(path.dirname(file), { recursive: true });
     let tables = emptyTables();
     try {

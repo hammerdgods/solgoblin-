@@ -230,7 +230,7 @@ export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClo
                 )}
               </div>
               <div className="text-xs text-muted">
-                <span className="font-medium text-text">Programs invoked</span> (all on YieldGoblin&apos;s allowlist, verified on the server and again in your browser):{" "}
+                <span className="font-medium text-text">Programs invoked</span> (all on SolGoblin&apos;s allowlist, verified on the server and again in your browser):{" "}
                 {preview.verification.programs.map((p) => <Badge key={p} className="mr-1" title={p}>{PROGRAM_NAMES[p] ?? shortAddress(p, 5)}</Badge>)}
               </div>
               {preview.warnings.map((w) => <Notice key={w} tone="warn">{w}</Notice>)}
@@ -256,7 +256,7 @@ export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClo
                       Approve &amp; sign in wallet ({secondsLeft}s)
                     </Button>
                   )}
-                  <p className="text-[11px] text-faint">Your wallet will show the transaction for a final signature. YieldGoblin submits it only if it exactly matches this preview.</p>
+                  <p className="text-[11px] text-faint">Your wallet will show the transaction for a final signature. SolGoblin submits it only if it exactly matches this preview.</p>
                 </>
               )}
             </div>

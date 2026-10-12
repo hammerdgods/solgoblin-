@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-20 border-b border-border bg-bg/85 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
-            <Link href="/" aria-label="YieldGoblin home">
+            <Link href="/" aria-label="SolGoblin home">
               <Wordmark />
             </Link>
             <nav className="hidden items-center gap-1 md:flex">

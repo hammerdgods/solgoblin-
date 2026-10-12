@@ -9,7 +9,7 @@ import type { AdapterContext, AdapterResult, Opportunity, YieldAdapter } from ".
 export const DEMO_LABEL = "DEMO DATA — fictional values for exploring the interface. Not live, not a quote.";
 
 export function demoOpportunities(now: Date): Opportunity[] {
-  const source = { kind: "demo" as const, name: "YieldGoblin demo dataset (fictional)", fetchedAt: now.toISOString() };
+  const source = { kind: "demo" as const, name: "SolGoblin demo dataset (fictional)", fetchedAt: now.toISOString() };
   const common = { network: "devnet" as const, executable: false, executableReason: "Demo mode never builds transactions.", refs: {} };
   return [
     {

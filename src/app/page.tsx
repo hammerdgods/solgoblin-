@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { GoblinMascot } from "@/components/goblin";
 import { LandingConnect } from "@/components/landing-connect";
 import { Wordmark } from "@/components/logo";
 import { RiskDisclosure } from "@/components/risk-disclosure";
 
 const STEPS = [
-  { n: "01", title: "Connect a wallet", body: "Connect Phantom, Solflare, or another Solana wallet. YieldGoblin reads public balances and positions. It never asks for a seed phrase or private key." },
+  { n: "01", title: "Connect a wallet", body: "Connect Phantom, Solflare, or another Solana wallet. SolGoblin reads public balances and positions. It never asks for a seed phrase or private key." },
   { n: "02", title: "Scan opportunities", body: "Live SOL staking and Kamino lending rates are pulled from the chain and the protocol's API, each shown with its source and update time." },
   { n: "03", title: "Get an explained recommendation", body: "A deterministic engine ranks options against your risk and liquidity settings. An optional AI layer explains the result in plain language, and it cannot change the numbers." },
   { n: "04", title: "Review, then approve in your wallet", body: "Every transaction is built, verified against an allowlist of programs, simulated, and shown to you in full. Nothing moves until you sign it in your wallet." },
@@ -36,7 +37,8 @@ export default function Landing() {
       <main className="flex-1">
         <section className="relative overflow-hidden">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(79,209,139,0.12),transparent_70%)]" />
-          <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-20 sm:px-6 sm:pt-28">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1fr_auto]">
+            <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">Solana yield agent</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Put Your Solana to Work.</h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:text-lg">
@@ -49,8 +51,14 @@ export default function Landing() {
               </Link>
             </div>
             <p className="mt-5 max-w-xl text-xs leading-5 text-faint">
-              Yields are variable and never guaranteed. YieldGoblin is non-custodial: it cannot move funds without your explicit wallet approval.
+              Yields are variable and never guaranteed. SolGoblin is non-custodial: it cannot move funds without your explicit wallet approval.
             </p>
+            </div>
+            <div className="order-first flex justify-center lg:order-none">
+              <div className="goblin-float">
+                <GoblinMascot className="h-56 w-56 sm:h-72 sm:w-72 lg:h-[22rem] lg:w-[22rem]" />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -91,7 +99,7 @@ export default function Landing() {
         <section id="risks" className="border-t border-border/70">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
             <h2 className="text-2xl font-semibold tracking-tight">Risk disclosure</h2>
-            <p className="mt-2 max-w-2xl text-sm text-muted">Read this before depositing anything. YieldGoblin makes no claims about protocol safety and is not affiliated with any protocol it displays.</p>
+            <p className="mt-2 max-w-2xl text-sm text-muted">Read this before depositing anything. SolGoblin makes no claims about protocol safety and is not affiliated with any protocol it displays.</p>
             <div className="mt-8">
               <RiskDisclosure />
             </div>
@@ -101,7 +109,7 @@ export default function Landing() {
 
       <footer className="border-t border-border/70">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-faint sm:px-6">
-          <span>YieldGoblin is experimental software. Not financial advice.</span>
+          <span>SolGoblin is experimental software. Not financial advice.</span>
           <Link href="/app" className="hover:text-text">Launch App →</Link>
         </div>
       </footer>

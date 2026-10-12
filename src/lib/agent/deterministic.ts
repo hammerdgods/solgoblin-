@@ -49,7 +49,7 @@ export function buildDeterministicDecision(input: DecisionInput, ranked: RankedO
     next = "Consider a larger amount or a longer horizon, or keep the funds idle.";
   } else if (!o!.executable) {
     action = "configure";
-    headline = `${o!.strategyName} is the best match, but YieldGoblin cannot execute it in the current configuration.`;
+    headline = `${o!.strategyName} is the best match, but SolGoblin cannot execute it in the current configuration.`;
     next = o!.executableReason ?? "Update the configuration to enable this strategy.";
   } else {
     action = "deposit";
@@ -63,7 +63,7 @@ export function buildDeterministicDecision(input: DecisionInput, ranked: RankedO
     if (o.apr !== null) supportingData.push({ label: "Underlying APR", value: formatPercent(o.apr, 3), source: o.source.name, fetchedAt: o.source.fetchedAt });
     if (o.metrics.utilization !== undefined) supportingData.push({ label: "Reserve utilization", value: formatPercent(o.metrics.utilization, 1), source: o.source.name, fetchedAt: o.source.fetchedAt });
     if (o.metrics.commission !== undefined) supportingData.push({ label: "Validator commission", value: formatPercent(o.metrics.commission, 1), source: o.source.name, fetchedAt: o.source.fetchedAt });
-    supportingData.push({ label: "Risk-adjusted score", value: formatPercent(best!.score.score, 3), source: "YieldGoblin deterministic ranking", fetchedAt: null });
+    supportingData.push({ label: "Risk-adjusted score", value: formatPercent(best!.score.score, 3), source: "SolGoblin deterministic ranking", fetchedAt: null });
   }
   for (const [sym, p] of Object.entries(input.prices)) {
     if (p) supportingData.push({ label: `${sym}/USD`, value: `$${p.usd.toFixed(4)}`, source: p.source.name, fetchedAt: p.priceTimestamp });

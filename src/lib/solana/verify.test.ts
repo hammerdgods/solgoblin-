@@ -50,7 +50,7 @@ function kaminoLike(extra: TransactionInstruction[] = [], reserve: string = KAMI
 const kaminoExpected: ExpectedTx = { kind: "kamino-deposit", wallet: wallet.toBase58(), market: KAMINO.mainMarket, reserve: KAMINO.reserves.USDC.address, mint: MINTS.USDC, amountBaseUnits: toBaseUnits(25, 6), maxPriorityFeeLamports: 2_000_000 };
 
 describe("native stake transaction verification", () => {
-  it("accepts the transaction YieldGoblin builds", async () => {
+  it("accepts the transaction SolGoblin builds", async () => {
     const { built, expected } = await stakeTx();
     const r = verifyTransaction(built.tx, built.tx.message.getAccountKeys(), expected);
     expect(r.violations).toEqual([]);

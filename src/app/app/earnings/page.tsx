@@ -35,7 +35,7 @@ export default function EarningsPage() {
     return (
       <div className="space-y-5">
         <h1 className="text-xl font-semibold tracking-tight">Earnings</h1>
-        <Notice tone="demo" title="Not available in demo mode">The earnings tracker only shows verifiable on-chain data and records for a real wallet. YieldGoblin does not fabricate demo profits.</Notice>
+        <Notice tone="demo" title="Not available in demo mode">The earnings tracker only shows verifiable on-chain data and records for a real wallet. SolGoblin does not fabricate demo profits.</Notice>
       </div>
     );
   }
@@ -66,12 +66,12 @@ export default function EarningsPage() {
         <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
           <Stat label="Realized staking rewards" loading={!e} value={rewards?.ok ? formatToken(rewards.totalSol, "SOL", 6) : "—"} hint={rewards?.ok ? `Last ${rewards.epochsChecked.length} epochs, on-chain` : rewards ? "unavailable" : undefined} />
           <Stat label="Est. Kamino interest" loading={!e} value={kamino?.ok ? kamino.items.filter((i) => i.estimatedAccrued !== null).map((i) => formatToken(i.estimatedAccrued, i.asset, 6)).join(" · ") || "—" : "—"} hint="Estimate; see notes" />
-          <Stat label="Network fees paid" loading={!e} value={e ? formatToken(e.realized.feesPaidLamports / LAMPORTS_PER_SOL, "SOL", 6) : "—"} hint="Via YieldGoblin, on-chain" />
-          <Stat label="Deposits via YieldGoblin" loading={!e} value={e ? String(e.flows.deposits.length) : "—"} hint="Confirmed only" />
+          <Stat label="Network fees paid" loading={!e} value={e ? formatToken(e.realized.feesPaidLamports / LAMPORTS_PER_SOL, "SOL", 6) : "—"} hint="Via SolGoblin, on-chain" />
+          <Stat label="Deposits via SolGoblin" loading={!e} value={e ? String(e.flows.deposits.length) : "—"} hint="Confirmed only" />
         </div>
         {e && rewards?.ok && (
           <p className="mt-4 text-[13px] text-muted">
-            Net in SOL over the checked window: <span className="tabular-nums text-text">{formatToken(rewards.totalSol - e.realized.feesPaidLamports / LAMPORTS_PER_SOL, "SOL", 6)}</span> (staking rewards minus fees paid through YieldGoblin). USDC interest is tracked separately and never converted.
+            Net in SOL over the checked window: <span className="tabular-nums text-text">{formatToken(rewards.totalSol - e.realized.feesPaidLamports / LAMPORTS_PER_SOL, "SOL", 6)}</span> (staking rewards minus fees paid through SolGoblin). USDC interest is tracked separately and never converted.
           </p>
         )}
       </Card>
@@ -139,7 +139,7 @@ export default function EarningsPage() {
                 <div key={i.asset} className="space-y-2">
                   <KeyValue items={[
                     { k: `Current ${i.asset} supplied`, v: formatToken(i.currentAmount, i.asset, 6) },
-                    { k: "Net deposits via YieldGoblin", v: formatToken(i.recordedNetDeposits, i.asset, 6) },
+                    { k: "Net deposits via SolGoblin", v: formatToken(i.recordedNetDeposits, i.asset, 6) },
                     { k: "Estimated accrued interest", v: i.estimatedAccrued !== null ? formatToken(i.estimatedAccrued, i.asset, 6) : "Not computable" },
                   ]} />
                   <p className="text-[11px] text-faint">{i.note}</p>
@@ -148,8 +148,8 @@ export default function EarningsPage() {
             </div>
           )}
         </Card>
-        <Card title="Deposits & transactions via YieldGoblin">
-          {!e ? <Skeleton className="h-16 w-full" /> : e.events.length === 0 ? <EmptyState title="No transactions yet">Transactions you approve through YieldGoblin appear here with their on-chain status.</EmptyState> : (
+        <Card title="Deposits & transactions via SolGoblin">
+          {!e ? <Skeleton className="h-16 w-full" /> : e.events.length === 0 ? <EmptyState title="No transactions yet">Transactions you approve through SolGoblin appear here with their on-chain status.</EmptyState> : (
             <ul className="divide-y divide-border/70 text-[13px]">
               {e.events.slice(0, 15).map((ev) => (
                 <li key={ev.id} className="flex flex-wrap items-center justify-between gap-2 py-2">

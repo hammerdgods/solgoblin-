@@ -85,7 +85,7 @@ export default function Dashboard() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="font-medium">Connect your Solana wallet</div>
-              <p className="mt-1 max-w-xl text-[13px] text-muted">YieldGoblin reads your public balances and positions. It never asks for a seed phrase or private key, and nothing moves without your signature. You can also explore with demo data (toggle “Demo” in the header).</p>
+              <p className="mt-1 max-w-xl text-[13px] text-muted">SolGoblin reads your public balances and positions. It never asks for a seed phrase or private key, and nothing moves without your signature. You can also explore with demo data (toggle “Demo” in the header).</p>
             </div>
             <WalletButton />
           </div>

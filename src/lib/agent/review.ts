@@ -39,7 +39,7 @@ export function reviewPositions(positions: HeldPosition[], ranked: RankedOpportu
     let estimatedBenefit: number | null = null;
 
     if (!current) {
-      reasons.push("Current strategy data is unavailable; YieldGoblin cannot evaluate this position right now.");
+      reasons.push("Current strategy data is unavailable; SolGoblin cannot evaluate this position right now.");
     } else if (!current.eligible) {
       verdict = "review";
       reasons.push(`This strategy no longer meets your settings: ${current.exclusionReasons.join(" ")}`);

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * YieldGoblin theme: dark, restrained green accent, high-contrast text.
+ * SolGoblin theme: dark, restrained green accent, high-contrast text.
  * The app is dark-only by design (crypto analytics convention), so tokens are fixed.
  */
 @theme {
@@ -106,3 +106,20 @@ body {
   background: rgb(0 0 0 / 0.7) !important;
   backdrop-filter: blur(4px);
 }
+
+/* Mascot motion (disabled by the reduced-motion rule above). */
+@keyframes goblin-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes goblin-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes goblin-coin {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(8deg); }
+}
+.goblin-float { animation: goblin-float 4s ease-in-out infinite; }
+.goblin-eyes { transform-box: fill-box; transform-origin: center; animation: goblin-blink 5s infinite; }
+.goblin-coin { transform-box: fill-box; transform-origin: center; animation: goblin-coin 2.6s ease-in-out infinite; }

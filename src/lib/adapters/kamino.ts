@@ -45,7 +45,7 @@ function lendingRisks(key: KaminoReserveKey, utilization: number, utilizationWar
       id: "smart-contract",
       level: "medium",
       title: "Smart-contract risk",
-      detail: "Funds are held by the Kamino Lend program. A bug or exploit could cause partial or total loss. YieldGoblin has not audited Kamino; check Kamino's published audits yourself.",
+      detail: "Funds are held by the Kamino Lend program. A bug or exploit could cause partial or total loss. SolGoblin has not audited Kamino; check Kamino's published audits yourself.",
     },
     {
       id: "bad-debt",
@@ -97,7 +97,7 @@ export function kaminoOpportunityFromMetric(
     apr: null,
     rateNotes: [
       "Variable lending supply APY reported by Kamino; interest only.",
-      "Excludes KMNO / farm incentive rewards, which are not tracked by YieldGoblin.",
+      "Excludes KMNO / farm incentive rewards, which are not tracked by SolGoblin.",
       "Kamino's protocol take rate is already deducted from the supply APY.",
     ],
     source: { kind: "live", name: "Kamino API — reserve metrics", url: kaminoMetricsUrl(), fetchedAt: fetchedAt.toISOString() },

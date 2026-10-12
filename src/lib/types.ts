@@ -69,7 +69,7 @@ export interface Opportunity {
   risks: RiskFactor[];
   /** Overall risk tier used by the deterministic ranker. */
   riskLevel: RiskLevel;
-  /** Whether YieldGoblin can build a deposit transaction for this opportunity on the configured network. */
+  /** Whether SolGoblin can build a deposit transaction for this opportunity on the configured network. */
   executable: boolean;
   executableReason?: string;
   /** Extra metrics that matter to monitoring (utilization, TVL, etc.). */

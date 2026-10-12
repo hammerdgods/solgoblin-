@@ -15,7 +15,7 @@ import { getStore, requireNetwork, serverConnection } from "./services";
 export interface KaminoAccrualEstimate {
   asset: "SOL" | "USDC";
   currentAmount: number;
-  /** Net confirmed deposits made through YieldGoblin. */
+  /** Net confirmed deposits made through SolGoblin. */
   recordedNetDeposits: number;
   /** currentAmount − recordedNetDeposits, or null when not computable. */
   estimatedAccrued: number | null;
@@ -48,13 +48,13 @@ export function summarizeFlows(events: TransactionEventRow[]) {
 
 export function estimateKaminoAccrual(asset: "SOL" | "USDC", currentAmount: number, recordedNetDeposits: number): KaminoAccrualEstimate {
   if (recordedNetDeposits <= 0) {
-    return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: null, note: "No deposits recorded by YieldGoblin for this position, so accrued interest cannot be separated from principal." };
+    return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: null, note: "No deposits recorded by SolGoblin for this position, so accrued interest cannot be separated from principal." };
   }
   const diff = currentAmount - recordedNetDeposits;
   if (diff < 0) {
-    return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: null, note: "Current balance is below recorded deposits (likely a withdrawal made outside YieldGoblin). Accrual cannot be estimated reliably." };
+    return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: null, note: "Current balance is below recorded deposits (likely a withdrawal made outside SolGoblin). Accrual cannot be estimated reliably." };
   }
-  return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: diff, note: "Estimated as current balance minus deposits confirmed through YieldGoblin. Inaccurate if you deposited or withdrew elsewhere." };
+  return { asset, currentAmount, recordedNetDeposits, estimatedAccrued: diff, note: "Estimated as current balance minus deposits confirmed through SolGoblin. Inaccurate if you deposited or withdrew elsewhere." };
 }
 
 export async function getEarnings(wallet: string): Promise<EarningsView> {
@@ -94,7 +94,7 @@ export async function getEarnings(wallet: string): Promise<EarningsView> {
     realized: {
       stakingRewards,
       feesPaidLamports: flows.feesPaidLamports,
-      feesNote: "Network fees of transactions submitted through YieldGoblin and confirmed on-chain (failed transactions still pay fees).",
+      feesNote: "Network fees of transactions submitted through SolGoblin and confirmed on-chain (failed transactions still pay fees).",
     },
     estimated: { kamino },
     flows: { deposits: flows.deposits },
@@ -102,12 +102,12 @@ export async function getEarnings(wallet: string): Promise<EarningsView> {
     history: {
       snapshots: [...snapshots].reverse(),
       note: snapshots.length
-        ? "History starts when YieldGoblin first recorded this wallet. Values come from server-side on-chain reads; gaps mean no snapshot was taken."
-        : "No history yet. YieldGoblin records a snapshot when you open the dashboard (at most every 10 minutes) and during monitoring runs.",
+        ? "History starts when SolGoblin first recorded this wallet. Values come from server-side on-chain reads; gaps mean no snapshot was taken."
+        : "No history yet. SolGoblin records a snapshot when you open the dashboard (at most every 10 minutes) and during monitoring runs.",
     },
     limitations: [
       "Staking rewards cover the last 5 completed epochs for current stake accounts only (RPC getInflationReward).",
-      "Kamino interest is estimated, not reported per user by YieldGoblin's data sources.",
+      "Kamino interest is estimated, not reported per user by SolGoblin's data sources.",
       "Changes in SOL's USD price are not yield and are excluded from earnings.",
       "APYs are rates, not your realized return.",
     ],

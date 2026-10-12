@@ -1,8 +1,8 @@
-# YieldGoblin
+# SolGoblin
 
-**An AI-assisted yield agent for Solana.** YieldGoblin scans a small set of real Solana earning strategies, ranks them against your risk settings with deterministic logic, explains the result (optionally with Claude), and helps you deposit with a transaction you review and sign in your own wallet.
+**An AI-assisted yield agent for Solana.** SolGoblin scans a small set of real Solana earning strategies, ranks them against your risk settings with deterministic logic, explains the result (optionally with Claude), and helps you deposit with a transaction you review and sign in your own wallet.
 
-> **Status: MVP / experimental.** Yields are variable and never guaranteed. You can lose money. YieldGoblin is not affiliated with Kamino or any validator, has not been audited, and is not financial advice.
+> **Status: MVP / experimental.** Yields are variable and never guaranteed. You can lose money. SolGoblin is not affiliated with Kamino or any validator, has not been audited, and is not financial advice.
 
 ---
 
@@ -60,7 +60,7 @@ Toggle **Demo** in the header to explore the UI with clearly labeled, fictional 
 | Area | Status | Details |
 | --- | --- | --- |
 | Kamino Lend USDC & SOL supply rates | **Live** | `GET https://api.kamino.finance/kamino-market/{market}/reserves/metrics` (documented [market data API](https://kamino.com/docs/build/borrow/market-data-metrics)). Interest APY only; KMNO/farm incentives are **not** included. |
-| Kamino deposit transactions | **Live (mainnet only)** | Built by Kamino's documented [`POST /ktx/klend/deposit`](https://kamino.com/docs/build/borrow/recipes/deposit-via-api) API, then **verified, simulated and bounded by YieldGoblin** before you sign. Disabled until `ENABLE_MAINNET_TRANSACTIONS=true`. |
+| Kamino deposit transactions | **Live (mainnet only)** | Built by Kamino's documented [`POST /ktx/klend/deposit`](https://kamino.com/docs/build/borrow/recipes/deposit-via-api) API, then **verified, simulated and bounded by SolGoblin** before you sign. Disabled until `ENABLE_MAINNET_TRANSACTIONS=true`. |
 | Kamino positions | **Live (mainnet only)** | Documented [Portfolio API](https://kamino.com/docs/build/developers/portfolio) (`GET /portfolio/{wallet}`), filtered to the pinned Main Market reserves. |
 | Native SOL staking rate | **Live, derived** | Computed from Solana RPC (`getInflationRate`, `getSupply`, `getVoteAccounts`, `getEpochInfo`, `getRecentPerformanceSamples`). An estimate, not a protocol-reported rate (see methodology below). |
 | Native staking transactions | **Live** | Built server-side with `@solana/web3.js` `StakeProgram` (create-with-seed + initialize + delegate). Exercised end-to-end on a local validator: prepare → wallet sign → submit → on-chain confirmation. |
@@ -192,8 +192,8 @@ Every financial transaction needs **explicit review and a wallet signature**. No
 
 - *Realized:*
   - staking rewards from `getInflationReward` (last 5 epochs, current stake accounts);
-  - network fees of transactions submitted via YieldGoblin.
-- *Estimated:* Kamino interest = current supplied amount − net deposits **confirmed through YieldGoblin**. It is shown as “not computable” if no deposits were recorded or if withdrawals happened elsewhere.
+  - network fees of transactions submitted via SolGoblin.
+- *Estimated:* Kamino interest = current supplied amount − net deposits **confirmed through SolGoblin**. It is shown as “not computable” if no deposits were recorded or if withdrawals happened elsewhere.
 - Position history is charted **in native units** (SOL, USDC) from server-side snapshots. Snapshots are taken when you open the dashboard (≤ 1 per 10 min) and during monitoring. SOL price changes are never labeled as yield.
 
 **Monitoring** (`src/lib/monitor`) raises alerts for:
@@ -289,7 +289,7 @@ With `localnet`, the RPC check refuses any endpoint that serves mainnet or devne
 
 1. Import the repo and set environment variables. Server-only secrets must **not** use the `NEXT_PUBLIC_` prefix.
 2. Configure Supabase: the local file store is not durable on serverless.
-3. Set `CRON_SECRET`. `vercel.json` schedules `GET /api/monitor/run` every 15 minutes, and Vercel sends `Authorization: Bearer $CRON_SECRET` automatically. Note that Vercel Hobby plans limit cron frequency; adjust the schedule if needed.
+3. Set `CRON_SECRET`. `vercel.json` schedules `GET /api/monitor/run` once a day (06:07 UTC, the Hobby-plan limit; use a more frequent schedule on Pro), and Vercel sends `Authorization: Bearer $CRON_SECRET` automatically.
 4. Follow the mainnet enablement checklist above before setting `ENABLE_MAINNET_TRANSACTIONS=true`.
 
 **Single server / container.** Run `npm run build && npm start`, keep `DATA_DIR` on a persistent volume (or use Supabase), and run monitoring with `APP_URL=… CRON_SECRET=… npm run monitor` (or any scheduler calling the cron endpoint).
@@ -299,15 +299,15 @@ With `localnet`, the RPC check refuses any endpoint that serves mainnet or devne
 ## Limitations and remaining risks
 
 - **No withdrawals or unstaking yet.** The MVP builds deposits and stakes only. Users withdraw or deactivate via Kamino's app or a wallet that manages stake accounts. Kamino's documented `/ktx/klend/withdraw` API and `StakeProgram.deactivate/withdraw` are the next additions.
-- **Third-party transaction builder.** Kamino deposits are built by Kamino's API. YieldGoblin's verifier constrains program usage, signer, fee payer, token movements and simulated outflows, but it does not decode every Kamino instruction's internal semantics. It relies on the program ID, the pinned market and reserve, and the simulation bounds.
-- **Wallet modification.** If a wallet alters the transaction while signing (e.g. adds instructions), YieldGoblin refuses to submit it, because it no longer matches the preview. Users of such wallets cannot transact through YieldGoblin.
+- **Third-party transaction builder.** Kamino deposits are built by Kamino's API. SolGoblin's verifier constrains program usage, signer, fee payer, token movements and simulated outflows, but it does not decode every Kamino instruction's internal semantics. It relies on the program ID, the pinned market and reserve, and the simulation bounds.
+- **Wallet modification.** If a wallet alters the transaction while signing (e.g. adds instructions), SolGoblin refuses to submit it, because it no longer matches the preview. Users of such wallets cannot transact through SolGoblin.
 - **Staking estimate.** Excludes MEV, assumes full vote credits, and treats network-wide inflation as uniform. Stake status shown is epoch-based and ignores warm-up/cool-down rate limits.
 - **Kamino rate scope.** Interest APY only. Incentive rewards are not shown, which understates some yields.
 - **Rate limiting** is in-memory per instance. On serverless with many instances the effective limit is higher, so add an edge/WAF limiter for production.
 - **No user authentication.** Read endpoints accept any public wallet address, which is public chain data anyway. Snapshots and recommendations can be triggered for any address but are throttled and derived from server-side reads, so clients cannot inject values.
 - **Public RPC endpoints are rate limited.** Use a dedicated provider for real use.
 - **AI explanations were not exercised against the live Anthropic API in development** (no key was available). The integration follows the official SDK documentation and is covered by mocked tests.
-- **Not audited.** No YieldGoblin code has been audited, and no claim is made about any protocol's audit status.
+- **Not audited.** No SolGoblin code has been audited, and no claim is made about any protocol's audit status.
 
 **Risk disclosure (summary):** smart-contract risk, stablecoin depeg/freeze risk, validator and staking risk, liquidity restrictions (unstaking delay, lending utilization), variable yield, transaction fees and rent, and possible loss of funds. The full text is on the landing page and in Settings.
 

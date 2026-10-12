@@ -7,7 +7,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "YieldGoblin — Solana yield agent",
+  title: "SolGoblin — Solana yield agent",
   description: "An AI-assisted yield agent for Solana that discovers opportunities, explains risks, and helps you put idle SOL and USDC to work. Every transaction requires your wallet's approval.",
 };
 

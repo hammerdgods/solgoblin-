@@ -33,7 +33,7 @@ export async function apiFetch<T>(url: string, init?: RequestInit & { timeoutMs?
   } catch (e) {
     if (e instanceof ClientApiError) throw e;
     if (e instanceof Error && e.name === "AbortError") throw new ClientApiError("The request timed out. The server or an upstream data source may be slow.", 0, "TIMEOUT");
-    throw new ClientApiError("Network error: could not reach the YieldGoblin server.", 0, "NETWORK");
+    throw new ClientApiError("Network error: could not reach the SolGoblin server.", 0, "NETWORK");
   } finally {
     clearTimeout(timer);
   }

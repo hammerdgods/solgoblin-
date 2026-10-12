@@ -1,4 +1,4 @@
--- YieldGoblin schema. Stores public on-chain-derived data only:
+-- SolGoblin schema. Stores public on-chain-derived data only:
 -- no private keys, seed phrases, emails or other personal data.
 --
 -- Access model: RLS is ENABLED on every table and NO policies are granted to
