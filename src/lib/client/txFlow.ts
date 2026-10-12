@@ -1,4 +1,4 @@
-import { VersionedTransaction, type AddressLookupTableAccount, type Connection } from "@solana/web3.js";
+import { Transaction, VersionedTransaction, type AddressLookupTableAccount, type Connection, type TransactionVersion } from "@solana/web3.js";
 import { MINTS } from "../constants";
 import { verifyTransaction, type ExpectedTx } from "../solana/verify";
 import type { TxPreview } from "../tx/service";
@@ -92,19 +92,34 @@ export async function verifyInBrowser(base64: string, preview: TxPreview, connec
 }
 
 export interface SigningWallet {
-  signTransaction?: <T extends VersionedTransaction>(tx: T) => Promise<T>;
+  signTransaction?: <T extends Transaction | VersionedTransaction>(tx: T) => Promise<T>;
+  /** Versions the wallet can sign; null/undefined means legacy only. */
+  supportedTransactionVersions?: ReadonlySet<TransactionVersion> | null;
+}
+
+/** True when the wallet cannot sign versioned (v0) transactions. */
+export function isLegacyOnly(wallet: Pick<SigningWallet, "supportedTransactionVersions">): boolean {
+  return !wallet.supportedTransactionVersions || !wallet.supportedTransactionVersions.has(0);
 }
 
 export async function signWithWallet(wallet: SigningWallet, tx: VersionedTransaction): Promise<string> {
   if (!wallet.signTransaction) throw new TxFlowError("This wallet does not support reviewing and signing a transaction before sending. Use a wallet that supports signTransaction (e.g. Phantom or Solflare).", "unsupported-wallet");
-  let signed: VersionedTransaction;
+  const isLegacyMessage = tx.version === "legacy";
+  if (!isLegacyMessage && isLegacyOnly(wallet)) throw new TxFlowError("This wallet cannot sign versioned transactions, which this strategy requires. Use Phantom or Solflare.", "unsupported-wallet");
+  let bytes: Uint8Array;
   try {
-    signed = await wallet.signTransaction(tx);
+    if (isLegacyMessage) {
+      // Legacy-only wallets expect a legacy Transaction object; the message bytes are identical.
+      const signed = await wallet.signTransaction(Transaction.from(tx.serialize()));
+      bytes = signed.serialize();
+    } else {
+      bytes = (await wallet.signTransaction(tx)).serialize();
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     throw new TxFlowError(/reject|denied|cancel/i.test(msg) ? "You declined the signature request. Nothing was sent." : `Wallet could not sign: ${msg}`, "rejected");
   }
   let bin = "";
-  for (const b of signed.serialize()) bin += String.fromCharCode(b);
+  for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
 }

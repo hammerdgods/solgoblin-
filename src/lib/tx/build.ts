@@ -24,7 +24,11 @@ export function stakeSeed(nonce: string): string {
   return `yg-${nonce}`.slice(0, 32);
 }
 
-export async function buildNativeStakeTx(connection: Connection, p: { wallet: string; voteAccount: string; lamports: number; seed: string }): Promise<BuiltTransaction & { stakeAccount: string }> {
+/**
+ * Native stake transaction. `legacy: true` produces a legacy-format message (same
+ * instructions) for wallets that cannot sign versioned (v0) transactions.
+ */
+export async function buildNativeStakeTx(connection: Connection, p: { wallet: string; voteAccount: string; lamports: number; seed: string; legacy?: boolean }): Promise<BuiltTransaction & { stakeAccount: string }> {
   const wallet = new PublicKey(p.wallet);
   const stakeAccount = await PublicKey.createWithSeed(wallet, p.seed, StakeProgram.programId);
   const create = StakeProgram.createAccountWithSeed({
@@ -38,7 +42,8 @@ export async function buildNativeStakeTx(connection: Connection, p: { wallet: st
   });
   const delegate = StakeProgram.delegate({ stakePubkey: stakeAccount, authorizedPubkey: wallet, votePubkey: new PublicKey(p.voteAccount) });
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-  const message = new TransactionMessage({ payerKey: wallet, recentBlockhash: blockhash, instructions: [...create.instructions, ...delegate.instructions] }).compileToV0Message();
+  const txMessage = new TransactionMessage({ payerKey: wallet, recentBlockhash: blockhash, instructions: [...create.instructions, ...delegate.instructions] });
+  const message = p.legacy ? txMessage.compileToLegacyMessage() : txMessage.compileToV0Message();
   return { tx: new VersionedTransaction(message), lookupTables: [], lastValidBlockHeight, stakeAccount: stakeAccount.toBase58() };
 }
 

@@ -1,14 +1,14 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useConnectWallet } from "./connect-wallet";
 import { useEffect, useRef, useState } from "react";
 import { shortAddress } from "@/lib/format";
 import { Button, cx } from "./ui";
 
 export function WalletButton({ size = "md", className }: { size?: "sm" | "md" | "lg"; className?: string }) {
   const { publicKey, connected, connecting, disconnect, wallet } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { open: openConnect } = useConnectWallet();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ export function WalletButton({ size = "md", className }: { size?: "sm" | "md" | 
 
   if (!connected || !publicKey) {
     return (
-      <Button variant="primary" size={size} className={className} disabled={connecting} onClick={() => setVisible(true)}>
+      <Button variant="primary" size={size} className={className} disabled={connecting} onClick={openConnect}>
         {connecting ? "Connecting…" : "Connect Wallet"}
       </Button>
     );
@@ -50,7 +50,7 @@ export function WalletButton({ size = "md", className }: { size?: "sm" | "md" | 
           >
             {copied ? "Copied" : "Copy address"}
           </button>
-          <button role="menuitem" className="block w-full px-3 py-2 text-left hover:bg-surface" onClick={() => { setOpen(false); setVisible(true); }}>
+          <button role="menuitem" className="block w-full px-3 py-2 text-left hover:bg-surface" onClick={() => { setOpen(false); disconnect().catch(() => {}).finally(openConnect); }}>
             Change wallet
           </button>
           <button role="menuitem" className="block w-full px-3 py-2 text-left text-danger hover:bg-surface" onClick={() => { setOpen(false); disconnect().catch(() => {}); }}>

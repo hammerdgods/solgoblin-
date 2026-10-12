@@ -1,17 +1,21 @@
 "use client";
 
+import { WalletAdapterNetwork, type WalletError } from "@solana/wallet-adapter-base";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import "@solana/wallet-adapter-react-ui/styles.css";
+import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
+import { TrustWalletAdapter } from "@solana/wallet-adapter-trust";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { ConnectWalletProvider } from "./connect-wallet";
 import { publicConfig } from "@/lib/config/public";
 import { RISK_PROFILES } from "@/lib/scanner/rank";
 import type { RiskPreferences } from "@/lib/types";
 
 /**
- * Wallet support: Phantom, Solflare and other Wallet Standard wallets register
- * themselves, so no wallet-specific adapters are bundled. The app only ever asks
- * the wallet to sign transactions the user has reviewed.
+ * Wallet support: Phantom, Solflare and Trust Wallet adapters are registered explicitly
+ * (so they appear even when not installed); any wallet that registers via Wallet Standard
+ * is also detected, and a Standard registration supersedes the legacy adapter of the same
+ * name. The app only ever asks the wallet to sign transactions the user has reviewed.
  */
 
 type ProfileName = keyof typeof RISK_PROFILES | "custom";
@@ -86,13 +90,27 @@ export function useSettings(): AppSettings {
   return ctx;
 }
 
+function friendlyWalletError(e: WalletError): string {
+  const msg = e.message || e.name;
+  if (/reject|denied|cancel/i.test(msg)) return "You declined the connection request in your wallet.";
+  if (/not ready|not detected|NotReady/i.test(msg + e.name)) return "That wallet isn't available in this browser. Install it, or open SolGoblin in the wallet's app.";
+  if (/locked/i.test(msg)) return "Your wallet is locked. Unlock it and try again.";
+  return msg || "The wallet reported an error.";
+}
+
 export function Providers({ children }: { children: ReactNode }) {
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const wallets = useMemo(() => {
+    const network = publicConfig.network === "mainnet-beta" ? WalletAdapterNetwork.Mainnet : WalletAdapterNetwork.Devnet;
+    return [new PhantomWalletAdapter(), new SolflareWalletAdapter({ network }), new TrustWalletAdapter()];
+  }, []);
+  const onError = useCallback((e: WalletError) => setWalletError(friendlyWalletError(e)), []);
   return (
     <ConnectionProvider endpoint={publicConfig.rpcUrl} config={{ commitment: "confirmed" }}>
-      <WalletProvider wallets={[]} autoConnect>
-        <WalletModalProvider>
+      <WalletProvider wallets={wallets} autoConnect onError={onError}>
+        <ConnectWalletProvider error={walletError} setError={setWalletError}>
           <SettingsProvider>{children}</SettingsProvider>
-        </WalletModalProvider>
+        </ConnectWalletProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

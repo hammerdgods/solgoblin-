@@ -10,6 +10,7 @@
 
 1. [Quick start](#quick-start)
 2. [What is real and what is simulated](#what-is-real-and-what-is-simulated)
+3. [Wallets: Phantom, Solflare, Trust Wallet](#wallets-phantom-solflare-trust-wallet)
 3. [Supported strategies](#supported-strategies)
 4. [Architecture](#architecture)
 5. [Transaction safety model](#transaction-safety-model)
@@ -95,7 +96,7 @@ A single Next.js 16 app (App Router, TypeScript strict, Tailwind 4). No microser
 
 ```
 Browser (React client components)
-  ├─ Wallet Standard adapter (Phantom, Solflare, …) — signs only reviewed transactions
+  ├─ Wallets: Phantom, Solflare, Trust Wallet (+ any Wallet Standard wallet) — sign only reviewed transactions
   ├─ Pages: / (landing), /app, /app/opportunities, /app/earnings, /app/alerts, /app/settings
   └─ txFlow: re-verifies every server-built transaction before the wallet prompt
         │ fetch /api/*
@@ -128,6 +129,22 @@ Key modules (`src/lib`):
 Adding a strategy means implementing `YieldAdapter`, adding its programs and accounts to `constants.ts`, adding an `ExpectedTx` variant and rules in `verify.ts`, and adding a builder in `tx/`.
 
 ---
+
+## Wallets: Phantom, Solflare, Trust Wallet
+
+| Wallet | Desktop | Mobile | Native staking | Kamino deposits |
+| --- | --- | --- | --- | --- |
+| **Phantom** | Extension (Wallet Standard / `@solana/wallet-adapter-phantom`) | “Open in app” → [`phantom.com/ul/browse`](https://docs.phantom.com/phantom-deeplinks/other-methods/browse) | ✅ (v0) | ✅ (v0) |
+| **Solflare** | Extension, **or Solflare web wallet without an extension** (`@solana/wallet-adapter-solflare`) | “Open in app” → [`solflare.com/ul/v1/browse`](https://docs.solflare.com/solflare/technical/deeplinks/other-methods/browse) | ✅ (v0) | ✅ (v0) |
+| **Trust Wallet** | Extension (`@solana/wallet-adapter-trust`, or its Wallet Standard registration) | “Open in app” → [`link.trustwallet.com/open_url?coin_id=501`](https://developer.trustwallet.com/developer/develop-for-trust/deeplinking) | ✅ (legacy tx when needed) | ⚠️ only if the installed version signs v0 |
+
+- The connect dialog always lists the three wallets and shows each one's status: **Detected**, **Web wallet** or **Not installed**. Missing wallets get an **Install** link on desktop and an **Open in app** deep link on mobile, which reopens SolGoblin inside the wallet's in-app browser.
+- Any other Wallet Standard wallet that is detected is listed under “Other detected wallets”. Android users can also connect through Solana Mobile Wallet Adapter (built into wallet-adapter).
+- **Versioned transactions.** Kamino deposits use v0 transactions with address lookup tables. Native staking is built as v0 by default, and as a **legacy** transaction when the connected wallet declares no v0 support. The official Trust adapter declares legacy-only.
+  - The legacy message contains the same instructions, passes the same verifier, and is submitted only if its bytes exactly match the preview.
+  - Legacy-only wallets are blocked from Kamino with an explanation, rather than failing at signing time.
+- Both paths were exercised end-to-end through the UI on a local validator, each ending in on-chain confirmation: a v0-capable wallet (as Phantom/Solflare) and a legacy-only wallet (as the Trust adapter).
+- Connection errors (rejected, locked, not installed) are shown in plain language in the connect dialog. SolGoblin never asks for a seed phrase or private key.
 
 ## Transaction safety model
 

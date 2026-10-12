@@ -59,6 +59,8 @@ export interface PrepareInput {
   opportunityId: string;
   amount: number;
   reviewedApy: number;
+  /** The connected wallet can only sign legacy transactions (e.g. some Trust Wallet versions). */
+  legacyOnly?: boolean;
 }
 
 function messageHash(tx: VersionedTransaction): string {
@@ -120,13 +122,14 @@ export async function prepareTransaction(input: PrepareInput): Promise<{ preview
     const problems = checkBalances({ asset: "SOL", amount: input.amount, solBalance: balances.sol, usdcBalance: balances.usdc, solOverhead: stakeOverheadSol(refundableRentLamports, 10_000), minSolReserve: cfg.tx.minSolReserve });
     if (problems.length) throw new ApiError(400, "INSUFFICIENT_BALANCE", problems.join(" "), { problems });
     const seed = stakeSeed(intentId.replace(/-/g, "").slice(0, 24));
-    const s = await buildNativeStakeTx(connection, { wallet: input.wallet, voteAccount, lamports, seed });
+    const s = await buildNativeStakeTx(connection, { wallet: input.wallet, voteAccount, lamports, seed, legacy: input.legacyOnly === true });
     built = s;
     action = "native-stake";
     expected = { kind: "native-stake", wallet: input.wallet, stakeAccount: s.stakeAccount, voteAccount, lamports, maxPriorityFeeLamports: cfg.tx.maxPriorityFeeLamports };
     expectedPosition = `New stake account ${s.stakeAccount} holding ${input.amount} SOL delegated to validator ${voteAccount} (+${refundableRentLamports / LAMPORTS_PER_SOL} SOL refundable rent reserve). Activation starts at the next epoch boundary.`;
     Object.assign(details, { stakeAccount: s.stakeAccount, voteAccount, seed });
   } else {
+    if (input.legacyOnly) throw new ApiError(400, "WALLET_UNSUPPORTED", "Your wallet can only sign legacy transactions. Kamino deposits require versioned (v0) transactions with address lookup tables, so use Phantom or Solflare for this strategy.");
     const key = o.asset as KaminoReserveKey;
     const reserve = KAMINO.reserves[key];
     if (o.refs.reserve !== reserve.address || o.refs.market !== KAMINO.mainMarket) throw new ApiError(403, "TX_BLOCKED", "Opportunity does not match the trusted Kamino configuration.");

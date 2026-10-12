@@ -56,6 +56,13 @@ describe("native stake transaction verification", () => {
     expect(r.violations).toEqual([]);
     expect(r.summary.programs.sort()).toEqual([PROGRAM_IDS.stake, PROGRAM_IDS.system].sort());
   });
+  it("accepts the legacy-format stake transaction built for legacy-only wallets", async () => {
+    const built = await buildNativeStakeTx(fakeConnection, { wallet: wallet.toBase58(), voteAccount: vote, lamports: 1_002_282_880, seed: stakeSeed("abc"), legacy: true });
+    const expected: ExpectedTx = { kind: "native-stake", wallet: wallet.toBase58(), stakeAccount: built.stakeAccount, voteAccount: vote, lamports: 1_002_282_880, maxPriorityFeeLamports: 1000 };
+    const roundTrip = VersionedTransaction.deserialize(built.tx.serialize());
+    expect(roundTrip.version).toBe("legacy");
+    expect(verifyTransaction(roundTrip, roundTrip.message.getAccountKeys(), expected).violations).toEqual([]);
+  });
   it("rejects a different validator, amount, or stake account", async () => {
     const { built, expected } = await stakeTx();
     const keys = built.tx.message.getAccountKeys();

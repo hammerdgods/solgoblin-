@@ -1,8 +1,8 @@
-import { Keypair, type Connection } from "@solana/web3.js";
+import { Keypair, Transaction, VersionedTransaction, type Connection } from "@solana/web3.js";
 import { describe, expect, it } from "vitest";
 import { buildNativeStakeTx, stakeSeed } from "@/lib/tx/build";
 import type { TxPreview } from "@/lib/tx/service";
-import { expectedFromPreview, isBusy, signWithWallet, TxFlowError, verifyInBrowser } from "./txFlow";
+import { expectedFromPreview, isBusy, isLegacyOnly, signWithWallet, TxFlowError, verifyInBrowser } from "./txFlow";
 
 const fakeConnection = { getLatestBlockhash: async () => ({ blockhash: "EC6HiHvoifw9S2bDsJAg7k3ZUe2wAXAF1bgFUzck8PPS", lastValidBlockHeight: 10 }), getAddressLookupTable: async () => ({ value: null }) } as unknown as Connection;
 const wallet = Keypair.generate();
@@ -40,7 +40,7 @@ describe("browser-side transaction flow", () => {
     const { base64, preview } = await setup();
     const tx = await verifyInBrowser(base64, preview, wallet.publicKey.toBase58(), fakeConnection);
     await expect(signWithWallet({}, tx)).rejects.toMatchObject({ kind: "unsupported-wallet" });
-    const rejecting = { signTransaction: async () => { throw new Error("User rejected the request."); } };
+    const rejecting = { supportedTransactionVersions: new Set(["legacy", 0] as const), signTransaction: async () => { throw new Error("User rejected the request."); } };
     const err = await signWithWallet(rejecting, tx).catch((e) => e);
     expect(err).toBeInstanceOf(TxFlowError);
     expect(err.message).toBe("You declined the signature request. Nothing was sent.");
@@ -48,8 +48,25 @@ describe("browser-side transaction flow", () => {
   it("returns a signed transaction from a signing wallet", async () => {
     const { base64, preview } = await setup();
     const tx = await verifyInBrowser(base64, preview, wallet.publicKey.toBase58(), fakeConnection);
-    const signed = await signWithWallet({ signTransaction: async (t) => { t.sign([wallet]); return t; } }, tx);
+    const signed = await signWithWallet({ supportedTransactionVersions: new Set(["legacy", 0] as const), signTransaction: async (t) => { (t as VersionedTransaction).sign([wallet]); return t; } }, tx);
     expect(typeof signed).toBe("string");
+  });
+  it("refuses v0 transactions for legacy-only wallets (e.g. Trust adapter) with a clear message", async () => {
+    const { base64, preview } = await setup();
+    const tx = await verifyInBrowser(base64, preview, wallet.publicKey.toBase58(), fakeConnection);
+    expect(isLegacyOnly({ supportedTransactionVersions: null })).toBe(true);
+    await expect(signWithWallet({ supportedTransactionVersions: null, signTransaction: async (t) => t }, tx)).rejects.toThrow(/cannot sign versioned/);
+  });
+  it("signs legacy stake transactions as a legacy Transaction with identical message bytes", async () => {
+    const built = await buildNativeStakeTx(fakeConnection, { wallet: wallet.publicKey.toBase58(), voteAccount: vote, lamports: 1_002_282_880, seed: stakeSeed("t"), legacy: true });
+    expect(built.tx.version).toBe("legacy");
+    const preview = { ...(await setup()).preview, details: { stakeAccount: built.stakeAccount, voteAccount: vote } };
+    const tx = await verifyInBrowser(Buffer.from(built.tx.serialize()).toString("base64"), preview, wallet.publicKey.toBase58(), fakeConnection);
+    let sawLegacyObject = false;
+    const signedB64 = await signWithWallet({ supportedTransactionVersions: null, signTransaction: async (t) => { sawLegacyObject = t instanceof Transaction; (t as Transaction).partialSign(wallet); return t; } }, tx);
+    expect(sawLegacyObject).toBe(true);
+    const signed = VersionedTransaction.deserialize(Buffer.from(signedB64, "base64"));
+    expect(Buffer.from(signed.message.serialize()).equals(Buffer.from(built.tx.message.serialize()))).toBe(true);
   });
   it("marks in-flight phases as busy (prevents double clicks)", () => {
     expect(isBusy("signing")).toBe(true);

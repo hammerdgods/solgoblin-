@@ -8,6 +8,7 @@ const body = z.object({
   opportunityId: z.string().min(1).max(120).regex(/^[A-Za-z0-9-]+$/),
   amount: z.number().finite().positive().max(1e9),
   reviewedApy: z.number().finite().min(0),
+  legacyOnly: z.boolean().optional(),
 });
 
 export const POST = handle("tx.prepare", async (req) => {

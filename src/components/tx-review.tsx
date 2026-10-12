@@ -4,7 +4,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useRef, useState } from "react";
 import { ClientApiError, apiFetch, postJson } from "@/lib/client/api";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/client/explorer";
-import { PHASE_LABEL, TxFlowError, isBusy, signWithWallet, verifyInBrowser, type TxPhase } from "@/lib/client/txFlow";
+import { PHASE_LABEL, TxFlowError, isBusy, isLegacyOnly, signWithWallet, verifyInBrowser, type TxPhase } from "@/lib/client/txFlow";
 import { LAMPORTS_PER_SOL, PROGRAM_NAMES } from "@/lib/constants";
 import { formatPercent, formatToken, shortAddress } from "@/lib/format";
 import type { TxPreview, TxStatusResult } from "@/lib/tx/service";
@@ -31,7 +31,9 @@ function stepIndex(p: TxPhase): number {
 }
 
 export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClose, onConfirmed }: Props) {
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, signTransaction, wallet: connectedWallet } = useWallet();
+  const supportedVersions = connectedWallet?.adapter.supportedTransactionVersions ?? null;
+  const legacyOnly = connectedWallet !== null && isLegacyOnly({ supportedTransactionVersions: supportedVersions });
   const { connection } = useConnection();
   const { demoMode } = useSettings();
   const [phase, setPhase] = useState<TxPhase>("input");
@@ -72,7 +74,7 @@ export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClo
     setAck(false);
     setPhase("preparing");
     try {
-      const res = await postJson<{ preview: TxPreview; transaction: string }>("/api/tx/prepare", { wallet, opportunityId: o.id, amount: amountNum, reviewedApy });
+      const res = await postJson<{ preview: TxPreview; transaction: string }>("/api/tx/prepare", { wallet, opportunityId: o.id, amount: amountNum, reviewedApy, legacyOnly });
       setPreview(res.preview);
       setTxBase64(res.transaction);
       setPhase("preview");
@@ -95,7 +97,7 @@ export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClo
       setPhase("verifying");
       const tx = await verifyInBrowser(txBase64, preview, wallet, connection);
       setPhase("signing");
-      const signed = await signWithWallet({ signTransaction }, tx);
+      const signed = await signWithWallet({ signTransaction, supportedTransactionVersions: supportedVersions }, tx);
       setPhase("submitting");
       const sub = await postJson<{ signature: string }>("/api/tx/submit", { intentId: preview.intentId, signedTransaction: signed });
       setSignature(sub.signature);
@@ -144,7 +146,7 @@ export function TxReviewDialog({ opportunity: o, defaultAmount, available, onClo
   if (maxAvailable !== null && amountNum > maxAvailable) inputProblems.push(`You have ${formatToken(maxAvailable, o.asset)} available.`);
   if (o.liquidity.minimumDeposit !== null && amountNum > 0 && amountNum < o.liquidity.minimumDeposit) inputProblems.push(`Minimum is ${formatToken(o.liquidity.minimumDeposit, o.asset)}.`);
 
-  const blockedReason = demoMode || o.source.kind === "demo" ? "Demo mode never builds transactions." : !wallet ? "Connect a wallet first." : !o.executable ? o.executableReason ?? "Not executable in this configuration." : null;
+  const blockedReason = demoMode || o.source.kind === "demo" ? "Demo mode never builds transactions." : !wallet ? "Connect a wallet first." : !o.executable ? o.executableReason ?? "Not executable in this configuration." : legacyOnly && o.kind === "lending" ? `${connectedWallet?.adapter.name ?? "This wallet"} can't sign versioned transactions, which Kamino deposits require. Connect Phantom or Solflare for this strategy.` : null;
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="tx-title">
