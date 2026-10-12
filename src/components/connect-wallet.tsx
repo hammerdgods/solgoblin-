@@ -102,7 +102,7 @@ function ConnectWalletDialog({ onClose }: { onClose: () => void }) {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         {f.label}
-                        <Badge tone={state === WalletReadyState.Installed ? "accent" : state === WalletReadyState.Loadable ? "info" : "neutral"}>{READY_LABEL[state]}</Badge>
+                        <Badge tone={state === WalletReadyState.Installed ? "accent" : state === WalletReadyState.Loadable ? "info" : "neutral"}>{state === WalletReadyState.Loadable && f.adapterName !== "Solflare" ? "Opens app" : READY_LABEL[state]}</Badge>
                       </div>
                       {f.note && <p className="mt-0.5 text-[11px] leading-4 text-faint">{f.note}</p>}
                     </div>
