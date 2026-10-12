@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { postJson, useApi, type FetchState } from "@/lib/client/api";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/client/explorer";
 import { formatAge, formatPercent, formatToken, formatUsd, shortAddress } from "@/lib/format";
@@ -25,10 +25,14 @@ function demoPortfolio(): PortfolioView {
   };
 }
 
+const noop = () => {};
+
 export function usePortfolio(wallet: string | null): FetchState<PortfolioView> {
   const { demoMode } = useSettings();
   const live = useApi<PortfolioView>(!demoMode && wallet ? `/api/portfolio?wallet=${wallet}` : null, { refreshMs: 60_000 });
   const snapshotFor = useRef<string | null>(null);
+  // Built only when demo mode is on (never during prerender), so no time value is baked into HTML.
+  const demo = useMemo(() => (demoMode ? demoPortfolio() : null), [demoMode]);
 
   // Record a server-side snapshot once per wallet per session (server throttles further).
   useEffect(() => {
@@ -37,7 +41,7 @@ export function usePortfolio(wallet: string | null): FetchState<PortfolioView> {
     postJson("/api/portfolio/snapshot", { wallet }).catch(() => {});
   }, [demoMode, wallet, live.data]);
 
-  if (demoMode) return { data: demoPortfolio(), error: null, loading: false, refresh: () => {}, updatedAt: Date.now() };
+  if (demoMode) return { data: demo, error: null, loading: false, refresh: noop, updatedAt: null };
   return live;
 }
 

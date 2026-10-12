@@ -15,6 +15,7 @@ import type { TransactionEventRow, TxAction } from "../store/types";
 import type { Opportunity, RiskFactor } from "../types";
 import { classifyFreshness } from "../yield/freshness";
 import { buildKaminoDepositTx, buildNativeStakeTx, formatAmountForApi, stakeSeed, toBaseUnits, type BuiltTransaction } from "./build";
+import { classifyConfirmedTransaction, classifySignatureStatus } from "./confirm";
 import { checkBalances, checkTxPolicy, KAMINO_MAX_SOL_OVERHEAD, rateChangedBeyond, stakeOverheadSol } from "./policy";
 
 /** A prepared intent is valid for at most this long, or until its blockhash expires. */
@@ -307,29 +308,18 @@ export async function getTransactionStatus(intentId: string): Promise<TxStatusRe
 
   const connection = serverConnection();
   const st = (await connection.getSignatureStatuses([row.signature], { searchTransactionHistory: true })).value[0];
-  if (st?.err) {
-    const error = `Transaction failed on-chain: ${JSON.stringify(st.err)}`;
-    await store.transitionTransactionEvent(intentId, "submitted", { status: "failed", error });
-    return { ...base, status: "failed", confirmationStatus: st.confirmationStatus ?? null, error };
-  }
-  if (st && (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized")) {
+  const height = st ? null : await connection.getBlockHeight("confirmed");
+  const decision = classifySignatureStatus(st, height, row.last_valid_block_height);
+  if (decision.status === "needs-details") {
     const txInfo = await connection.getTransaction(row.signature, { maxSupportedTransactionVersion: 0, commitment: "confirmed" });
-    const feeLamports = txInfo?.meta?.fee ?? null;
-    if (txInfo?.meta?.err) {
-      const error = `Transaction failed on-chain: ${JSON.stringify(txInfo.meta.err)}`;
-      await store.transitionTransactionEvent(intentId, "submitted", { status: "failed", error, fee_lamports: feeLamports });
-      return { ...base, status: "failed", confirmationStatus: st.confirmationStatus, error, feeLamports };
-    }
-    await store.transitionTransactionEvent(intentId, "submitted", { status: "confirmed", fee_lamports: feeLamports });
-    return { ...base, status: "confirmed", confirmationStatus: st.confirmationStatus, feeLamports };
+    if (!txInfo?.meta) return { ...base, status: "pending", confirmationStatus: st?.confirmationStatus ?? null };
+    const final = classifyConfirmedTransaction({ err: txInfo.meta.err, fee: txInfo.meta.fee });
+    await store.transitionTransactionEvent(intentId, "submitted", { status: final.status, error: final.error, fee_lamports: final.feeLamports });
+    return { ...base, status: final.status, confirmationStatus: st?.confirmationStatus ?? null, error: final.error, feeLamports: final.feeLamports };
   }
-  if (!st) {
-    const height = await connection.getBlockHeight("confirmed");
-    if (height > row.last_valid_block_height) {
-      const error = "Blockhash expired before the transaction was confirmed. It was not executed.";
-      await store.transitionTransactionEvent(intentId, "submitted", { status: "expired", error });
-      return { ...base, status: "expired", confirmationStatus: null, error };
-    }
+  if (decision.status === "failed" || decision.status === "expired") {
+    await store.transitionTransactionEvent(intentId, "submitted", { status: decision.status, error: decision.error });
+    return { ...base, status: decision.status, confirmationStatus: st?.confirmationStatus ?? null, error: decision.error };
   }
   return { ...base, status: "pending", confirmationStatus: st?.confirmationStatus ?? null };
 }

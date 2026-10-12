@@ -1,3 +1,5 @@
+import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { ConfigError } from "../config/serverSchema";
 import { UnsupportedNetworkError } from "../errors";
@@ -49,12 +51,18 @@ export async function parseJsonBody<T>(req: Request, schema: ZodType<T>, maxByte
   return parsed.data;
 }
 
-/** Wrap a route handler with consistent error handling. Never leaks stack traces or secrets. */
+/**
+ * Wrap a route handler with consistent error handling. Never leaks stack traces or secrets.
+ * Every API route reads live data, so it is excluded from prerendering via connection(),
+ * and Next.js control-flow errors are rethrown rather than turned into 500s.
+ */
 export function handle(route: string, fn: (req: Request) => Promise<Response>): (req: Request) => Promise<Response> {
   return async (req: Request) => {
     try {
+      await connection();
       return await fn(req);
     } catch (err) {
+      unstable_rethrow(err);
       if (err instanceof ApiError) {
         const headers = err.status === 429 && typeof err.details === "object" && err.details && "retryAfterSeconds" in err.details ? { "Retry-After": String((err.details as { retryAfterSeconds: number }).retryAfterSeconds) } : undefined;
         return jsonError(err.status, err.code, err.message, err.details, headers);

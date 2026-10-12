@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export class ClientApiError extends Error {
   constructor(
@@ -51,39 +51,30 @@ export interface FetchState<T> {
   updatedAt: number | null;
 }
 
-/** Fetch with loading/error state, optional polling, and stale-response protection. */
+/**
+ * Fetch with loading/error state, optional polling, and stale-response protection.
+ * Loading is derived from a request key, so no state is set synchronously in effects.
+ */
 export function useApi<T>(url: string | null, opts: { refreshMs?: number } = {}): FetchState<T> {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<ClientApiError | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!url);
-  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
-  const seq = useRef(0);
+  const key = url ? `${url}#${tick}` : null;
+  const [res, setRes] = useState<{ url: string | null; key: string | null; data: T | null; error: ClientApiError | null; updatedAt: number | null }>({ url: null, key: null, data: null, error: null, updatedAt: null });
 
   useEffect(() => {
-    if (!url) {
-      setData(null);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-    const id = ++seq.current;
-    setLoading(true);
+    if (!url || !key) return;
+    let cancelled = false;
     apiFetch<T>(url)
-      .then((d) => {
-        if (id !== seq.current) return;
-        setData(d);
-        setError(null);
-        setUpdatedAt(Date.now());
+      .then((data) => {
+        if (!cancelled) setRes({ url, key, data, error: null, updatedAt: Date.now() });
       })
-      .catch((e: ClientApiError) => {
-        if (id !== seq.current) return;
-        setError(e);
-      })
-      .finally(() => {
-        if (id === seq.current) setLoading(false);
+      .catch((error: ClientApiError) => {
+        // Keep the last good data for the same URL; surface the error alongside it.
+        if (!cancelled) setRes((prev) => ({ url, key, data: prev.url === url ? prev.data : null, error, updatedAt: prev.url === url ? prev.updatedAt : null }));
       });
-  }, [url, tick]);
+    return () => {
+      cancelled = true;
+    };
+  }, [url, key]);
 
   useEffect(() => {
     if (!url || !opts.refreshMs) return;
@@ -92,5 +83,6 @@ export function useApi<T>(url: string | null, opts: { refreshMs?: number } = {})
   }, [url, opts.refreshMs]);
 
   const refresh = useCallback(() => setTick((x) => x + 1), []);
-  return { data, error, loading, refresh, updatedAt };
+  const same = res.url === url;
+  return { data: same ? res.data : null, error: same ? res.error : null, loading: key !== null && res.key !== key, refresh, updatedAt: same ? res.updatedAt : null };
 }
