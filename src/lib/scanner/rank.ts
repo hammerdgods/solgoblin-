@@ -97,7 +97,8 @@ export function evaluateOpportunity(o: Opportunity, prefs: RiskPreferences, ctx:
   if (!fees.converted) warnings.push("Network fees (paid in SOL) are not included in the net estimate because no reliable price was available.");
 
   const warmupDays = (o.metrics.warmupHours ?? 0) / 24;
-  const safeApy = Number.isFinite(o.apy) ? Math.max(0, Math.min(o.apy, MAX_PLAUSIBLE_APY)) : 0;
+  // Implausible rates contribute nothing to the score (never clamp them into a high score).
+  const safeApy = Number.isFinite(o.apy) && o.apy >= 0 && o.apy <= MAX_PLAUSIBLE_APY ? o.apy : 0;
   const netYield = estimateNetYield({ principal, apy: safeApy, days: prefs.horizonDays, protocolFeeRate: o.costs.protocolFeeRate, networkFeesInAsset: fees.amount, warmupDays });
   if (principal > 0 && netYield.netYield <= 0) warnings.push("At this amount and horizon, estimated costs exceed estimated yield.");
 

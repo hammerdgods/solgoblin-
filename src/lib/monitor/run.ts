@@ -5,7 +5,7 @@ import { log } from "../log";
 import { getPortfolio, recordPortfolioSnapshot } from "../server/portfolio";
 import { getStore, scanOpportunities } from "../server/services";
 import type { AlertRow, StrategySnapshotRow } from "../store/types";
-import { dedupeAlerts, evaluateAdapterErrors, evaluateOpportunityAlerts, evaluateReviewAlerts, type AlertDraft } from "./evaluate";
+import { dedupeAlerts, evaluateAdapterErrors, evaluateOpportunityAlerts, evaluateReviewAlerts, isPlausibleApy, type AlertDraft } from "./evaluate";
 
 export interface MonitorRunResult {
   startedAt: string;
@@ -37,7 +37,7 @@ export async function runMonitor(): Promise<MonitorRunResult> {
     drafts.push(...evaluateAdapterErrors(scan.errors));
     const previous = await store.latestStrategySnapshots();
     drafts.push(...evaluateOpportunityAlerts(scan.opportunities, previous, startedAt, cfg.monitoring));
-    const rows: StrategySnapshotRow[] = scan.opportunities.map((o) => ({
+    const rows: StrategySnapshotRow[] = scan.opportunities.filter((o) => isPlausibleApy(o.apy)).map((o) => ({
       id: randomUUID(),
       opportunity_id: o.id,
       protocol: o.protocol,

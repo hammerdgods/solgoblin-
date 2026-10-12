@@ -17,11 +17,17 @@ export interface MonitorThresholds {
 
 export type AlertDraft = Omit<AlertRow, "id" | "created_at">;
 
+export const isPlausibleApy = (apy: number) => Number.isFinite(apy) && apy >= 0 && apy <= 1;
+
 export function evaluateOpportunityAlerts(current: Opportunity[], previous: Map<string, StrategySnapshotRow>, now: Date, t: MonitorThresholds): AlertDraft[] {
   const alerts: AlertDraft[] = [];
   for (const o of current) {
+    if (!isPlausibleApy(o.apy)) {
+      alerts.push({ type: "data-unavailable", severity: "warning", title: `${o.strategyName}: implausible rate data`, detail: "The source reported a rate outside plausible bounds. It is excluded from recommendations, snapshots and change alerts.", opportunity_id: o.id, wallet: null, data: { apy: o.apy, source: o.source.name } });
+      continue;
+    }
     const prev = previous.get(o.id);
-    if (prev) {
+    if (prev && isPlausibleApy(prev.apy)) {
       const delta = rateDeltaBps(prev.apy, o.apy);
       if (Math.abs(delta) >= t.apyChangeAlertBps) {
         alerts.push({

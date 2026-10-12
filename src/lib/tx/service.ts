@@ -83,7 +83,9 @@ export async function prepareTransaction(input: PrepareInput): Promise<{ preview
   if (blockers.length) throw new ApiError(403, "TX_BLOCKED", "Transaction preparation is blocked.", { blockers });
   const o = opportunity!;
   if (classifyFreshness(o.source, new Date(), cfg.monitoring.staleAfterSeconds) !== "fresh") throw new ApiError(409, "STALE_DATA", "Rate data is stale; refresh and review again.");
-  if (rateChangedBeyond(input.reviewedApy, o.apy, RATE_DRIFT_TOLERANCE_BPS)) {
+  // Drift is only meaningful for plausible rates; implausible ones carry a preview warning instead.
+  const plausible = o.apy >= 0 && o.apy <= 1;
+  if (plausible && rateChangedBeyond(input.reviewedApy, o.apy, RATE_DRIFT_TOLERANCE_BPS)) {
     throw new ApiError(409, "RATE_CHANGED", `The rate changed since you reviewed it (now ${(o.apy * 100).toFixed(3)}%). Review the updated numbers before continuing.`, { currentApy: o.apy });
   }
 

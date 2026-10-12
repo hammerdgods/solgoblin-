@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * YieldGoblin theme: dark, restrained green accent, high-contrast text.
+ * The app is dark-only by design (crypto analytics convention), so tokens are fixed.
+ */
+@theme {
+  --color-bg: #07090b;
+  --color-surface: #0d1114;
+  --color-surface-2: #12171b;
+  --color-border: #1e262c;
+  --color-border-strong: #2b363e;
+  --color-text: #e7ecef;
+  --color-muted: #8b979f;
+  --color-faint: #5d6a72;
+  --color-accent: #4fd18b;
+  --color-accent-strong: #6ee7a4;
+  --color-accent-dim: #163a29;
+  --color-warn: #e9b44c;
+  --color-warn-dim: #3a2d12;
+  --color-danger: #f0716a;
+  --color-danger-dim: #3d1a18;
+  --color-info: #74a7f2;
+  --color-info-dim: #172a44;
+  --color-demo: #c08cf4;
+  --color-demo-dim: #2c1d3f;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --animate-fade-in: fade-in 240ms ease-out both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -400px 0;
+    }
+    to {
+      background-position: 400px 0;
+    }
   }
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+::selection {
+  background: var(--color-accent-dim);
+  color: var(--color-accent-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Wallet adapter modal, restyled to match the theme. */
+.wallet-adapter-modal-wrapper {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.6) !important;
+  font-family: var(--font-sans) !important;
+}
+.wallet-adapter-modal-title {
+  color: var(--color-text) !important;
+  font-weight: 600 !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:not([disabled]):hover {
+  background-color: var(--color-surface-2) !important;
+}
+.wallet-adapter-modal-button-close {
+  background: var(--color-surface-2) !important;
+}
+.wallet-adapter-modal-overlay {
+  background: rgb(0 0 0 / 0.7) !important;
+  backdrop-filter: blur(4px);
 }

@@ -43,6 +43,18 @@ export const PROGRAM_IDS = {
   kaminoLend: "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
 } as const;
 
+/** Human-readable names for the allowlisted programs (shown in transaction previews). */
+export const PROGRAM_NAMES: Record<string, string> = {
+  [PROGRAM_IDS.system]: "System Program",
+  [PROGRAM_IDS.computeBudget]: "Compute Budget",
+  [PROGRAM_IDS.stake]: "Stake Program",
+  [PROGRAM_IDS.splToken]: "SPL Token",
+  [PROGRAM_IDS.token2022]: "Token-2022",
+  [PROGRAM_IDS.associatedToken]: "Associated Token Account",
+  [PROGRAM_IDS.addressLookupTable]: "Address Lookup Table",
+  [PROGRAM_IDS.kaminoLend]: "Kamino Lend",
+};
+
 export const MINTS = {
   wSOL: "So11111111111111111111111111111111111111112",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
